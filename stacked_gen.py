@@ -199,9 +199,9 @@ def test_stack_gen_perf(data_sets, target, cv_eval=None,
 
     return results
 
-########################
+############################
 # End of test_stack_gen_perf
-########################
+############################
 
 
 def predict_stack_gen(train_data_sets, train_target, test_data_sets,
@@ -361,56 +361,6 @@ def convert_train_and_test_to_L1(train_data_L0, train_target, test_data_L0,
     return train_data_partial_L1, test_data_partial_L1
 
 
-# TODO: OK, so delete it right??
-# SUBSUMED by convert_train_and_test_to_L1(.)
-# def convert_train_to_L1(train_data_L0, train_target, BOM_L0):
-# """This takes the Level 0 training data from one of the models and converts
-# it into the Level 1 features.
-##
-# This function gets called by convert_train_and_test_to_L1.
-##
-# INPUT:
-# >train_data_L0: Training data, NxD array, where N is the number of datapoints in training set
-# and D is the number of features.
-# >train_target: The targets corresponding to the training datapoints.  There should only
-# be two unique elements in this array, since the Bucket of
-# Models it uses is meant for binary classification. Nx1 array.
-# >BOM_L0:     The BucketOfModels object that will be used for Level 0
-# generalization.
-##
-# OUTPUT:
-# >partial_train_data_L1: The training data for Level 1, Nx1 array.  This is only one of
-# of the features of the Level 1 training data corresponding to
-# one of the feature sets, so it will be combined with the results
-# of the other feature sets to make the full Level 1 training
-# set before the final generalization."""
-##
-# Initialize the output array which has same shape as training target array
-##    train_data_partial_L1 = np.zeros( len(train_target) )
-# Fill it with -1's to more easily see if there is an error down the line
-# train_data_partial_L1.fill(-1)
-##
-##    #####
-# Now, for each datapoint, we leave it out, train the remaining points,
-# then probabilistically predict the result of that left out point.
-##
-# This looks like Cross-Validation, but we just use it to make partitions of the sets
-##    temp_cv = LeaveOneOut( len(train_target) )
-##
-# for temp_data_indices, temp_holdout_point_index in temp_cv:
-##
-# train a temporary classifier on remaining points
-##        temp_clf = BOM_L0.train_using_BOM( train_data[temp_data_indices], train_target[temp_data_indices] )
-##
-# probabilistic prediction on the holdout point;
-# this gives probability for each of the two classes, but we only save the one for Class 1.
-# (we have two indices because predict_proba strangely gives a 2D array output)
-##        train_data_partial_L1[temp_holdout_point_index] = temp_clf.predict_proba( train_data[temp_holdout_point_index] ) [0,1]
-##
-##
-# return train_data_partial_L1
-
-
 class BucketOfModels:
     """This Class implement Bucket of Models.  You may specify the following
     variables upon creation:
@@ -461,6 +411,6 @@ class BucketOfModels:
 
         return clf
 
-    #########
+    #############################
     # End of BucketOfModels class
-    ########
+    #############################

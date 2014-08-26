@@ -257,23 +257,32 @@ def find_best_clf(train_data, train_target,
             C_range = np.logspace(C_min, C_max, C_num)
             gamma_range = np.logspace(gamma_min, gamma_max, gamma_num)
 
-            #create parameter grid
+            # create parameter grid
             par_grid = ((C, gamma) for C in C_range for gamma in gamma_range)
 
             for C, gamma in par_grid:
-                temp_clf = svm.SVC(kernel='rbf', C=C, gamma=gamma, probability=probability)
-                # Now we test the performance of this temporary classifier, by taking the mean of all the runs of the CV.
-                temp_score = cross_val_score(temp_clf, scaled_train_data, train_target, cv=cv).mean()
+                temp_clf = svm.SVC(kernel='rbf', C=C, gamma=gamma,
+                                   probability=probability)
+                # Now we test the performance of this temporary classifier,
+                # by taking the mean of all the runs of the CV.
+                temp_score = cross_val_score(temp_clf, scaled_train_data,
+                                             train_target, cv=cv).mean()
                 # check if we have new best score for this
                 if temp_score > this_clf_score:
                     this_clf_score = temp_score
                     this_clf_best = temp_clf
                     this_best_iter = i
 
-            # Update the parameter grid search to be smaller grid centered on best parameters
-            # note: (C_max-C_min)/C_num is a slightly smaller than the previous intervals (between exponents since its log spacing)
-            C_min, C_max = log10(this_clf_best.C) - (C_max - C_min)/C_num, log10(this_clf_best.C) + (C_max - C_min)/C_num
-            gamma_min, gamma_max = log10(this_clf_best.gamma) - (gamma_max - gamma_min)/gamma_num, log10(this_clf_best.gamma) + (gamma_max - gamma_min)/gamma_num
+            # Update the parameter grid search to be smaller grid centered on
+            # best parameters
+            # note: (C_max-C_min)/C_num is a slightly smaller than the previous
+            # intervals (between exponents since its log spacing)
+            C_min = log10(this_clf_best.C) - (C_max - C_min)/C_num
+            C_max = log10(this_clf_best.C) + (C_max - C_min)/C_num
+            gamma_min = log10(this_clf_best.gamma) \
+                        - (gamma_max - gamma_min)/gamma_num
+            gamma_max = log10(this_clf_best.gamma) \
+                        + (gamma_max - gamma_min)/gamma_num
 
         # Check if this classifier beat our overall best classifier
         if this_clf_score > best_score:
@@ -289,9 +298,11 @@ def find_best_clf(train_data, train_target,
     # Check SVM with linear kernel
     ##########################
     if 'svm_linear' in clf_list or 'all' in clf_list:
-        # it seems the linear kernel has no parameters, so we already know this is best parameter set for this clf
+        # it seems the linear kernel has no parameters, so we already know this
+        # is best parameter set for this clf
         this_clf_best = svm.SVC(kernel='linear', probability=probability)
-        this_clf_score = cross_val_score(this_clf_best, train_data, train_target, cv=cv).mean()
+        this_clf_score = cross_val_score(this_clf_best, train_data,
+                                         train_target, cv=cv).mean()
 
         # Check if this classifier beat our overall best classifier
         if this_clf_score > best_score:
@@ -307,7 +318,8 @@ def find_best_clf(train_data, train_target,
     # Check SVM with polynomial kernel
     # Note the parameter grid we search on is just has sides of just 3 dots,
     # that's because this is very computationally intensive.
-    # Also, this classifier stalled a lot, so I played a_round with the upper limits of the parameters
+    # Also, this classifier stalled a lot, so I played a_round with the upper
+    # limits of the parameters
     # to find the maximum range it can go without stalling.
     ##########################
     if 'svm_poly' in clf_list or 'all' in clf_list:
@@ -338,34 +350,51 @@ def find_best_clf(train_data, train_target,
 
             # set the parameter grid
             C_range = np.logspace(C_min, C_max, C_num)
-            degree_range = np.linspace(degree_min, degree_max, degree_num)  # note: we linearly space the degree
+            degree_range = np.linspace(degree_min, degree_max, degree_num)
             coef0_range = np.logspace(coef0_min, coef0_max, coef0_num)
             gamma_range = np.logspace(gamma_min, gamma_max, gamma_num)
 
-            #create parameter grid
+            # create parameter grid
             par_grid = ((C, degree, coef0, gamma) for C in C_range
                                                   for degree in degree_range
                                                   for coef0 in coef0_range
                                                   for gamma in gamma_range)
 
             for C, degree, coef0, gamma in par_grid:
-                # I had to add this since when the parameters are too big, for some reason it just stalls.
-                if (coef0 > 31000) or (degree >= 3 and coef0 > 2500) or (gamma > 200) or (C > 10**6) or (degree >= 2 and C > 1 and coef0 > 1000) or (C > 1000 and coef0 > 5000):
+                # I had to add this since when the parameters are too big,
+                # for some reason it just stalls.
+                if ((coef0 > 31000) or (degree >= 3 and coef0 > 2500) or
+                        (gamma > 200) or (C > 10**6) or
+                        (degree >= 2 and C > 1 and coef0 > 1000) or
+                        (C > 1000 and coef0 > 5000)):
                     continue
-                # test the current classifier and save its score into a temporary variable.
-                temp_clf = svm.SVC(kernel='poly', C=C, degree=degree, coef0=coef0, gamma=gamma, probability=probability)
-                temp_score = cross_val_score(temp_clf, train_data, train_target, cv=cv).mean()
+                # test the current classifier and save its score into a
+                # temporary variable.
+                temp_clf = svm.SVC(kernel='poly', C=C, degree=degree,
+                                   coef0=coef0, gamma=gamma,
+                                   probability=probability)
+                temp_score = cross_val_score(temp_clf, train_data,
+                                             train_target, cv=cv).mean()
                 # check if we have new best score for this
                 if temp_score > this_clf_score:
                     this_clf_score = temp_score
                     this_clf_best = temp_clf
                     this_best_iter = i
 
-            # Update the parameter grid search to be smaller grid centered on best parameters
-            C_min, C_max = log10(this_clf_best.C) - (C_max - C_min)/(C_num+1), log10(this_clf_best.C) + (C_max - C_min)/(C_num+1)
-            coef0_min, coef0_max = log10(this_clf_best.coef0) - (coef0_max - coef0_min)/(coef0_num+1), log10(this_clf_best.coef0) + (coef0_max - coef0_min)/(coef0_num+1)
-            gamma_min, gamma_max = log10(this_clf_best.gamma) - (gamma_max - gamma_min)/(gamma_num+1), log10(this_clf_best.gamma) + (gamma_max - gamma_min)/(gamma_num+1)
-            # for degree, we just take the best one (to help reduce computational cost), although we could search for a more accurate degree... (TO DO: try it!)
+            # Update the parameter grid search to be smaller grid centered on
+            # best parameters
+            C_min = log10(this_clf_best.C) - (C_max - C_min)/(C_num+1)
+            C_max = log10(this_clf_best.C) + (C_max - C_min)/(C_num+1)
+            coef0_min = log10(this_clf_best.coef0) - \
+                        (coef0_max - coef0_min)/(coef0_num+1)
+            coef0_max = log10(this_clf_best.coef0) + \
+                        (coef0_max - coef0_min)/(coef0_num+1)
+            gamma_min = log10(this_clf_best.gamma) - \
+                        (gamma_max - gamma_min)/(gamma_num+1)
+            gamma_max = log10(this_clf_best.gamma) + \
+                        (gamma_max - gamma_min)/(gamma_num+1)
+            # for degree, we just take the best one (to help reduce
+            # computational cost)
             degree_min = degree_max = this_clf_best.degree
             degree_num = 1
 
@@ -418,19 +447,28 @@ def find_best_clf(train_data, train_target,
                         for coef0 in coef0_range)
 
             for C, degree, coef0 in par_grid:
-                # test the current classifier and save its score into a temporary variable.
-                temp_clf = svm.SVC(kernel='sigmoid', C=C, degree=degree, coef0=coef0, probability=probability)
-                temp_score = cross_val_score(temp_clf, train_data, train_target, cv=cv).mean()
+                # test the current classifier and save its score into a
+                # temporary variable.
+                temp_clf = svm.SVC(kernel='sigmoid', C=C, degree=degree,
+                                   coef0=coef0, probability=probability)
+                temp_score = cross_val_score(temp_clf, train_data,
+                                             train_target, cv=cv).mean()
                 # check if we have new best score for this
                 if temp_score > this_clf_score:
                     this_clf_score = temp_score
                     this_clf_best = temp_clf
                     this_best_iter = i
 
-            # Update the parameter grid search to be smaller grid centered on best parameters
-            C_min, C_max = log10(this_clf_best.C) - (C_max - C_min)/C_num, log10(this_clf_best.C) + (C_max - C_min)/C_num
-            coef0_min, coef0_max = log10(this_clf_best.coef0) - (coef0_max - coef0_min)/coef0_num, log10(this_clf_best.coef0) + (coef0_max - coef0_min)/coef0_num
-            # for degree, we just take the best one (to help reduce computational cost), although we could search for a more accurate degree... (TO DO: try it!)
+            # Update the parameter grid search to be smaller grid centered on
+            # best parameters
+            C_min = log10(this_clf_best.C) - (C_max - C_min)/C_num
+            C_max = log10(this_clf_best.C) + (C_max - C_min)/C_num
+            coef0_min = log10(this_clf_best.coef0) - \
+                        (coef0_max - coef0_min)/coef0_num
+            coef0_max = log10(this_clf_best.coef0) + \
+                        (coef0_max - coef0_min)/coef0_num
+            # for degree, we just take the best one (to help reduce
+            # computational cost)
             degree_min = degree_max = this_clf_best.degree
             degree_num = 1
 
@@ -468,9 +506,11 @@ def find_best_clf(train_data, train_target,
 
             # set the parameter grid
             C_range = np.logspace(C_min, C_max, C_num)
-            intercept_scaling_range = np.logspace(intercept_scaling_min, intercept_scaling_max, intercept_scaling_num)
+            intercept_scaling_range = np.logspace(intercept_scaling_min,
+                                                  intercept_scaling_max,
+                                                  intercept_scaling_num)
 
-            #create parameter grid
+            # create parameter grid
             par_grid = ((C, penalty, dual, fit_intercept, intercept_scaling)
                         for C in C_range
                         for penalty in ['l1', 'l2']
@@ -479,16 +519,24 @@ def find_best_clf(train_data, train_target,
                         for intercept_scaling in intercept_scaling_range)
 
             for C, penalty, dual, fit_intercept, intercept_sclaing in par_grid:
-                # If fit_intercept is False, then I think intercept_scaling doesn't matter, so just go through it once.
-                if fit_intercept is False and intercept_scaling in intercept_scaling_range[1:]:
+                # If fit_intercept is False, then I think intercept_scaling
+                # doesn't matter, so just go through it once.
+                if (fit_intercept is False and
+                        intercept_scaling in intercept_scaling_range[1:]):
                     continue
                 # penalty='l1' is apparently only supported when dual is False
                 if penalty == 'l1' and dual is not False:
                     continue
 
-                # test the current classifier and save its score into a temporary variable.
-                temp_clf = LogisticRegression(C=C, penalty=penalty, dual=dual, fit_intercept=fit_intercept, intercept_scaling=intercept_scaling)
-                temp_score = cross_val_score(temp_clf, train_data, train_target, cv=cv).mean()
+                # test the current classifier and save its score into a
+                # temporary variable.
+                temp_clf = LogisticRegression(
+                    C=C, penalty=penalty, dual=dual,
+                    fit_intercept=fit_intercept,
+                    intercept_scaling=intercept_scaling
+                )
+                temp_score = cross_val_score(temp_clf, train_data,
+                                             train_target, cv=cv).mean()
                 # check if we have new best score for this
                 if temp_score > this_clf_score:
                     this_clf_score = temp_score
@@ -497,8 +545,14 @@ def find_best_clf(train_data, train_target,
 
             # Update the parameter grid search to be smaller grid centered
             # on best parameters
-            C_min, C_max = log10(this_clf_best.C) - (C_max - C_min)/C_num, log10(this_clf_best.C) + (C_max - C_min)/C_num
-            intercept_scaling_min, intercept_scaling_max = log10(this_clf_best.intercept_scaling) - (intercept_scaling_max - intercept_scaling_min)/intercept_scaling_num, log10(this_clf_best.intercept_scaling) + (intercept_scaling_max - intercept_scaling_min)/intercept_scaling_num
+            C_min = log10(this_clf_best.C) - (C_max - C_min)/C_num
+            C_max = log10(this_clf_best.C) + (C_max - C_min)/C_num
+            intercept_scaling_min = log10(this_clf_best.intercept_scaling) - \
+                (intercept_scaling_max - intercept_scaling_min) / \
+                intercept_scaling_num
+            intercept_scaling_max = log10(this_clf_best.intercept_scaling) + \
+                (intercept_scaling_max - intercept_scaling_min) / \
+                intercept_scaling_num
 
         # Check if this classifier beat our overall best classifier
         if this_clf_score > best_score:
@@ -515,14 +569,17 @@ def find_best_clf(train_data, train_target,
     ###########
     if 'random_forest' in clf_list or 'all' in clf_list:
         for max_features in [None, "auto", "sqrt", "log2"]:
-            temp_clf = RandomForestClassifier(n_estimators=10, max_features=max_features)
-            temp_score = cross_val_score(temp_clf, train_data, train_target, cv=cv).mean()
+            temp_clf = RandomForestClassifier(n_estimators=10,
+                                              max_features=max_features)
+            temp_score = cross_val_score(temp_clf, train_data, train_target,
+                                         cv=cv).mean()
 
             # Check if this classifier beat our overall best classifier
             if temp_score > best_score:
                 best_score = temp_score
                 best_clf = temp_clf
-                best_iter = 0  # Like linear SVM, only one *iteration* for this classifier
+                # Like linear SVM, only one *iteration* for this classifier
+                best_iter = 0
     ###########
     # End of Random Forest Classifier
     ###########

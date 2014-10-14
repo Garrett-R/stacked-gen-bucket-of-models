@@ -14,7 +14,7 @@ There's an included file showing an exmaple usage.
 Issues
 ======
 
- - Using cross-validation to find optimal parameters is very computationally costly.  It would be better to rewrite this algorithm in C++.
+ - This algorithm is very computationally expensive, but as long as the parameters are not set to high, it should be feasible.  (see the file example_usage_stacked_gen.py for example parameters)
 
 License
 =======

@@ -14,7 +14,7 @@ There's an included file showing an exmaple usage.
 Issues
 ======
 
- - This algorithm is very computationally expensive, but as long as the parameters are not set to high, it should be feasible.  (see the file `example_usage_stacked_gen.py` for example parameters)
+ - This algorithm is very computationally expensive, but as long as the parameters are not set too high, it should be feasible.  (see the file `example_usage_stacked_gen.py` for example parameters)
 
 License
 =======
